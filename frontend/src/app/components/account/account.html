@@ -1,0 +1,59 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <!-- Back to Dashboard -->
+      <a class="btn btn-link text-decoration-none text-accent fw-semibold mb-3 ps-0" routerLink="/dashboard">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+      </a>
+
+      <!-- Loading State -->
+      <div class="text-center py-5" *ngIf="loading">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+
+      <!-- Account Card -->
+      <div class="card card-premium shadow border-0 p-4 p-md-5" *ngIf="!loading && accountDetails">
+        <div class="border-bottom pb-4 mb-4 d-flex justify-content-between align-items-center">
+          <div>
+            <h3 class="fw-bold text-dark mb-1">Account Information</h3>
+            <p class="text-muted small mb-0">Official metadata for your registered bank account</p>
+          </div>
+          <i class="bi bi-person-badge-fill text-primary fs-1"></i>
+        </div>
+
+        <div class="row g-4">
+          <div class="col-sm-6">
+            <label class="text-muted small text-uppercase tracking-wider">Account Holder ID</label>
+            <div class="fs-5 fw-bold text-dark">{{ accountDetails.userId }}</div>
+          </div>
+          <div class="col-sm-6">
+            <label class="text-muted small text-uppercase tracking-wider">Account Number</label>
+            <div class="fs-5 fw-bold text-dark">{{ accountDetails.accountNumber }}</div>
+          </div>
+          <div class="col-sm-6">
+            <label class="text-muted small text-uppercase tracking-wider">Account Type</label>
+            <div class="fs-5 fw-semibold text-dark">
+              <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">{{ accountDetails.accountType }}</span>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <label class="text-muted small text-uppercase tracking-wider">Active Balance</label>
+            <div class="fs-4 fw-bold text-success">{{ accountDetails.balance | currency:'INR':'symbol-narrow' }}</div>
+          </div>
+        </div>
+
+        <div class="bg-light p-3 rounded-3 mt-4 border">
+          <div class="d-flex align-items-start">
+            <i class="bi bi-shield-lock-fill text-accent fs-4 me-3 mt-1"></i>
+            <div>
+              <h6 class="fw-bold mb-1">Compliance & Protection</h6>
+              <p class="small text-muted mb-0">This account is fully insured and covered under the Banking Regulation Act. Always verify recipient details before sending funds.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

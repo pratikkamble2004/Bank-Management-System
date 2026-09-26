@@ -1,0 +1,100 @@
+<div class="container d-flex align-items-center justify-content-center min-vh-100 py-5">
+  <div class="card card-premium shadow-lg border-0 overflow-hidden" style="max-width: 450px; width: 100%;">
+    <!-- Card Header Banner -->
+    <div class="bg-dark text-center py-4 text-white border-bottom border-secondary">
+      <i class="bi bi-bank2 fs-1 text-primary mb-2"></i>
+      <h3 class="fw-bold tracking-wider mb-1">APEX BANK</h3>
+      <p class="text-secondary small mb-0">Secure Digital Banking Suite</p>
+    </div>
+
+    <!-- Card Body -->
+    <div class="card-body p-4 p-md-5">
+      <!-- Error & Success Alerts -->
+      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+        <div class="small">{{ errorMessage }}</div>
+      </div>
+      
+      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
+        <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+        <div class="small">{{ successMessage }}</div>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form *ngIf="isLoginMode" (ngSubmit)="onLogin()" #loginForm="ngForm">
+        <h4 class="fw-semibold text-center mb-4">Account Login</h4>
+        
+        <div class="mb-3">
+          <label for="username" class="form-label small fw-medium text-secondary">Username</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-secondary"></i></span>
+            <input type="text" class="form-control bg-light border-start-0 ps-0" id="username" 
+                   name="username" [(ngModel)]="loginUsername" placeholder="Enter username" required>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label for="password" class="form-label small fw-medium text-secondary">Password</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-secondary"></i></span>
+            <input type="password" class="form-control bg-light border-start-0 ps-0" id="password" 
+                   name="password" [(ngModel)]="loginPassword" placeholder="Enter password" required>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 btn-premium py-2 mb-3" [disabled]="loading || !loginForm.valid">
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          Sign In
+        </button>
+
+        <div class="text-center mt-3">
+          <a class="text-decoration-none small text-accent" style="cursor: pointer;" (click)="toggleMode()">
+            Don't have an account? <strong class="text-primary">Create one here</strong>
+          </a>
+        </div>
+      </form>
+
+      <!-- REGISTER FORM -->
+      <form *ngIf="!isLoginMode" (ngSubmit)="onRegister()" #registerForm="ngForm">
+        <h4 class="fw-semibold text-center mb-4">Register Account</h4>
+        
+        <div class="mb-3">
+          <label for="regUsername" class="form-label small fw-medium text-secondary">Choose Username</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"><i class="bi bi-person-plus text-secondary"></i></span>
+            <input type="text" class="form-control bg-light border-start-0 ps-0" id="regUsername" 
+                   name="regUsername" [(ngModel)]="registerUsername" placeholder="e.g. pratik" required>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="regPassword" class="form-label small fw-medium text-secondary">Security Password</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock-fill text-secondary"></i></span>
+            <input type="password" class="form-control bg-light border-start-0 ps-0" id="regPassword" 
+                   name="regPassword" [(ngModel)]="registerPassword" placeholder="Enter security password" required>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label for="regAccountType" class="form-label small fw-medium text-secondary">Account Type</label>
+          <select class="form-select bg-light" id="regAccountType" name="regAccountType" [(ngModel)]="registerAccountType">
+            <option value="SAVINGS">Savings Account</option>
+            <option value="CHECKING">Checking Account</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100 btn-premium py-2 mb-3" [disabled]="loading || !registerForm.valid">
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          Register Account
+        </button>
+
+        <div class="text-center mt-3">
+          <a class="text-decoration-none small text-accent" style="cursor: pointer;" (click)="toggleMode()">
+            Already registered? <strong class="text-primary">Sign in here</strong>
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

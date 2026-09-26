@@ -1,0 +1,93 @@
+<div class="container py-5">
+  <!-- Back Button -->
+  <a class="btn btn-link text-decoration-none text-accent fw-semibold mb-3 ps-0" routerLink="/dashboard">
+    <i class="bi bi-arrow-left"></i> Back to Dashboard
+  </a>
+
+  <!-- Transactions Log Card -->
+  <div class="card card-premium shadow border-0 p-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-4 mb-4">
+      <div>
+        <h3 class="fw-bold text-dark mb-1">Transaction History</h3>
+        <p class="text-muted small mb-0">Search and filter your entire transaction history logs</p>
+      </div>
+      <i class="bi bi-list-stars text-primary fs-1 d-none d-md-block"></i>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-secondary"></i></span>
+          <input type="text" class="form-control bg-light border-start-0 ps-0" 
+                 placeholder="Search by description or reference..." 
+                 [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select bg-light" [(ngModel)]="filterType" (change)="applyFilters()">
+          <option value="">All Types</option>
+          <option value="DEPOSIT">Deposits</option>
+          <option value="WITHDRAW">Withdrawals</option>
+          <option value="TRANSFER_OUT">Transfers Sent</option>
+          <option value="TRANSFER_IN">Transfers Received</option>
+        </select>
+      </div>
+      <div class="col-md-3 d-grid">
+        <button class="btn btn-outline-secondary btn-premium" (click)="searchTerm = ''; filterType = ''; applyFilters()">
+          <i class="bi bi-arrow-counterclockwise"></i> Reset Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="text-center py-5" *ngIf="loading">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive" *ngIf="!loading">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Reference Number</th>
+            <th>Date & Time</th>
+            <th class="text-end">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let txn of filteredTransactions">
+            <td>
+              <span class="badge px-3 py-2 rounded-pill text-uppercase"
+                    [ngClass]="{
+                      'bg-success-subtle text-success': txn.transactionType === 'DEPOSIT' || txn.transactionType === 'TRANSFER_IN',
+                      'bg-danger-subtle text-danger': txn.transactionType === 'WITHDRAW' || txn.transactionType === 'TRANSFER_OUT'
+                    }">
+                {{ txn.transactionType }}
+              </span>
+            </td>
+            <td class="fw-medium">{{ txn.description }}</td>
+            <td class="text-secondary small">{{ txn.reference }}</td>
+            <td class="text-secondary small">{{ txn.createdAt | date:'medium' }}</td>
+            <td class="text-end fw-bold"
+                [ngClass]="{
+                  'text-success': txn.transactionType === 'DEPOSIT' || txn.transactionType === 'TRANSFER_IN',
+                  'text-danger': txn.transactionType === 'WITHDRAW' || txn.transactionType === 'TRANSFER_OUT'
+                }">
+              {{ txn.transactionType === 'DEPOSIT' || txn.transactionType === 'TRANSFER_IN' ? '+' : '-' }}{{ txn.amount | currency:'INR':'symbol-narrow' }}
+            </td>
+          </tr>
+          <tr *ngIf="filteredTransactions.length === 0">
+            <td colspan="5" class="text-center py-5 text-muted">
+              <i class="bi bi-file-earmark-x fs-2 d-block mb-2"></i> No transactions found matching filters.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

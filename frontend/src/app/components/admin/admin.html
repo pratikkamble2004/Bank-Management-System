@@ -1,0 +1,656 @@
+<div class="container py-4 py-md-5">
+
+  <!-- Header Banner -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card card-premium bg-dark text-white p-4 border-0 shadow d-flex flex-md-row justify-content-between align-items-center">
+        <div>
+          <div class="d-flex align-items-center">
+            <span class="badge bg-primary px-3 py-2 rounded-pill me-2 text-uppercase tracking-wider">Staff Terminal</span>
+            <span class="text-secondary small">Main Digital Branch</span>
+          </div>
+          <h2 class="fw-bold mt-2 mb-1">
+            <i class="bi bi-briefcase-fill text-primary me-2"></i> Bank Employee Portal
+          </h2>
+          <p class="text-secondary small mb-0">Branch teller operations, customer account management, counter deposits, and wire transfers.</p>
+        </div>
+        <div class="mt-3 mt-md-0 text-md-end">
+          <button class="btn btn-outline-light btn-sm rounded-pill px-3" (click)="loadAdminData()">
+            <i class="bi bi-arrow-clockwise me-1"></i> Refresh Data
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="text-center py-5" *ngIf="loading">
+    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+      <span class="visually-hidden">Loading branch data...</span>
+    </div>
+    <p class="text-muted mt-3">Accessing core banking records...</p>
+  </div>
+
+  <div *ngIf="!loading">
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-pills mb-4 p-2 bg-light rounded-4 border shadow-sm flex-nowrap overflow-auto">
+      <li class="nav-item">
+        <button class="nav-link px-3 px-md-4 py-2 rounded-pill fw-semibold text-nowrap"
+                [class.active]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">
+          <i class="bi bi-speedometer2 me-1"></i> Branch Dashboard
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link px-3 px-md-4 py-2 rounded-pill fw-semibold text-nowrap"
+                [class.active]="activeTab === 'deposit'" (click)="switchTab('deposit')">
+          <i class="bi bi-cash-coin me-1"></i> Add Deposit
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link px-3 px-md-4 py-2 rounded-pill fw-semibold text-nowrap"
+                [class.active]="activeTab === 'transfer'" (click)="switchTab('transfer')">
+          <i class="bi bi-arrow-left-right me-1"></i> Inter-Account Transfer
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link px-3 px-md-4 py-2 rounded-pill fw-semibold text-nowrap"
+                [class.active]="activeTab === 'accounts'" (click)="switchTab('accounts')">
+          <i class="bi bi-person-lines-fill me-1"></i> Client Accounts ({{ accounts.length }})
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link px-3 px-md-4 py-2 rounded-pill fw-semibold text-nowrap"
+                [class.active]="activeTab === 'transactions'" (click)="switchTab('transactions')">
+          <i class="bi bi-journal-text me-1"></i> Audit Ledger ({{ transactions.length }})
+        </button>
+      </li>
+    </ul>
+
+    <!-- ========================================== -->
+    <!-- TAB 1: BRANCH DASHBOARD -->
+    <!-- ========================================== -->
+    <div *ngIf="activeTab === 'dashboard'">
+      <!-- Stat Cards -->
+      <div class="row g-4 mb-4">
+        <div class="col-md-3 col-sm-6">
+          <div class="card card-premium p-4 border-0 shadow-sm h-100">
+            <span class="text-muted small text-uppercase tracking-wider">Total Customers</span>
+            <h2 class="fw-bold text-dark mt-2 mb-0">{{ stats.totalUsers }}</h2>
+            <div class="small text-success mt-2"><i class="bi bi-check-circle me-1"></i> Registered Users</div>
+          </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <div class="card card-premium p-4 border-0 shadow-sm h-100">
+            <span class="text-muted small text-uppercase tracking-wider">Active Accounts</span>
+            <h2 class="fw-bold text-dark mt-2 mb-0">{{ stats.totalAccounts }}</h2>
+            <div class="small text-primary mt-2"><i class="bi bi-credit-card me-1"></i> Savings & Checking</div>
+          </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <div class="card card-premium p-4 border-0 shadow-sm h-100">
+            <span class="text-muted small text-uppercase tracking-wider">Total Vault Deposits</span>
+            <h2 class="fw-bold text-success mt-2 mb-0">{{ formatINR(totalVaultDeposits) }}</h2>
+            <div class="small text-muted mt-2"><i class="bi bi-safe me-1"></i> Branch Liquidity</div>
+          </div>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+          <div class="card card-premium p-4 border-0 shadow-sm h-100">
+            <span class="text-muted small text-uppercase tracking-wider">Transaction Ledger</span>
+            <h2 class="fw-bold text-dark mt-2 mb-0">{{ stats.totalTransactions }}</h2>
+            <div class="small text-warning mt-2"><i class="bi bi-activity me-1"></i> Total Operations</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Operations -->
+      <div class="row g-4 mb-4">
+        <div class="col-md-6">
+          <div class="card card-premium border-0 shadow-sm p-4">
+            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-lightning-charge-fill text-warning me-2"></i> Teller Quick Operations</h5>
+            <div class="d-grid gap-2">
+              <button class="btn btn-outline-success text-start py-3 px-3 rounded-3 d-flex justify-content-between align-items-center" (click)="switchTab('deposit')">
+                <div>
+                  <div class="fw-bold"><i class="bi bi-cash-coin me-2"></i> Add Customer Cash Deposit</div>
+                  <small class="text-muted">Credit funds to any verified customer account</small>
+                </div>
+                <i class="bi bi-chevron-right"></i>
+              </button>
+              <button class="btn btn-outline-primary text-start py-3 px-3 rounded-3 d-flex justify-content-between align-items-center" (click)="switchTab('transfer')">
+                <div>
+                  <div class="fw-bold"><i class="bi bi-arrow-left-right me-2"></i> Inter-Account Wire Transfer</div>
+                  <small class="text-muted">Initiate assisted wire transfer between clients</small>
+                </div>
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="card card-premium border-0 shadow-sm p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="fw-bold text-dark mb-0"><i class="bi bi-clock-history text-primary me-2"></i> Recent Global Operations</h5>
+              <button class="btn btn-sm btn-link text-decoration-none fw-semibold" (click)="switchTab('transactions')">
+                View All <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr class="small text-muted">
+                    <th>Type</th>
+                    <th>Ref</th>
+                    <th class="text-end">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let t of transactions.slice(0, 5)">
+                    <td>
+                      <span class="badge rounded-pill small"
+                            [ngClass]="{
+                              'bg-success-subtle text-success': t.transactionType === 'DEPOSIT' || t.transactionType === 'TRANSFER_IN',
+                              'bg-danger-subtle text-danger': t.transactionType === 'WITHDRAW' || t.transactionType === 'TRANSFER_OUT'
+                            }">
+                        {{ t.transactionType }}
+                      </span>
+                    </td>
+                    <td class="small font-monospace text-muted">{{ t.reference }}</td>
+                    <td class="text-end fw-semibold small">{{ formatINR(t.amount) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: COUNTER DEPOSIT -->
+    <!-- ========================================== -->
+    <div *ngIf="activeTab === 'deposit'">
+      <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+          <div class="card card-premium shadow-sm border-0 p-4 p-md-5">
+
+            <!-- STEP 1: FORM -->
+            <div *ngIf="depositStep === 'form'">
+              <div class="text-center mb-4">
+                <div class="d-inline-flex p-3 rounded-circle bg-success bg-opacity-10 text-success mb-2">
+                  <i class="bi bi-cash-coin fs-1"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-1">Branch Counter Cash Deposit</h4>
+                <p class="text-muted small mb-0">Credit funds into any customer account across the bank network</p>
+              </div>
+
+              <!-- Customer Account Input -->
+              <div class="mb-3">
+                <label for="depositTargetAcc" class="form-label small fw-semibold text-secondary">Customer Account Number</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted"><i class="bi bi-person-badge"></i></span>
+                  <input type="text" 
+                         class="form-control bg-light" 
+                         id="depositTargetAcc" 
+                         [(ngModel)]="depositTargetAcc" 
+                         (ngModelChange)="lookupDepositAccount()"
+                         (blur)="lookupDepositAccount()"
+                         placeholder="Enter 10-digit customer account number" 
+                         maxlength="10">
+                </div>
+
+                <div *ngIf="depositLookingUp" class="text-primary small mt-1">
+                  <span class="spinner-border spinner-border-sm me-1"></span> Verifying customer account...
+                </div>
+
+                <!-- Verified Badge -->
+                <div *ngIf="depositVerified && !depositLookingUp" class="p-3 mt-2 rounded-3 bg-success bg-opacity-10 border border-success border-opacity-25 d-flex justify-content-between align-items-center">
+                  <div>
+                    <div class="small text-muted">Customer Name</div>
+                    <div class="fw-bold text-dark">{{ depositCustomerName }}</div>
+                  </div>
+                  <div class="text-end">
+                    <div class="small text-muted">{{ depositCustomerType }} Account</div>
+                    <div class="fw-bold text-success">{{ formatINR(depositCustomerBalance) }}</div>
+                  </div>
+                </div>
+
+                <div *ngIf="depositError && !depositLookingUp" class="text-danger small mt-1">
+                  <i class="bi bi-exclamation-circle-fill me-1"></i> {{ depositError }}
+                </div>
+              </div>
+
+              <!-- Deposit Amount -->
+              <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label for="depositAmount" class="form-label small fw-semibold text-secondary mb-0">Deposit Amount</label>
+                  <span class="small text-success fw-medium" *ngIf="depositAmount && depositAmount > 0">
+                    {{ formatINR(depositAmount) }}
+                  </span>
+                </div>
+                <div class="input-group input-group-lg">
+                  <span class="input-group-text bg-light border-end-0 text-muted fw-bold fs-4">₹</span>
+                  <input type="number" 
+                         class="form-control bg-light border-start-0 amount-input-lg" 
+                         id="depositAmount" 
+                         [(ngModel)]="depositAmount" 
+                         placeholder="0.00" 
+                         min="1" 
+                         step="any">
+                </div>
+              </div>
+
+              <!-- Quick Chips -->
+              <div class="mb-4">
+                <label class="form-label small fw-medium text-muted mb-1">Quick Select Amount</label>
+                <div class="quick-amount-grid">
+                  <button type="button" 
+                          class="quick-amount-chip" 
+                          *ngFor="let q of quickDepositAmounts"
+                          [class.selected]="depositAmount === q"
+                          (click)="selectDepositAmount(q)">
+                    + {{ formatINR(q) }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Remarks -->
+              <div class="mb-4">
+                <label for="depositDesc" class="form-label small fw-semibold text-secondary">Deposit Remarks (Optional)</label>
+                <input type="text" 
+                       class="form-control bg-light" 
+                       id="depositDesc" 
+                       [(ngModel)]="depositDesc" 
+                       placeholder="e.g. Branch Counter Cash Deposit" 
+                       maxlength="100">
+              </div>
+
+              <!-- Review Button -->
+              <button type="button" 
+                      class="btn btn-success w-100 btn-premium py-2 fs-6" 
+                      [disabled]="!depositVerified || !depositAmount || depositAmount <= 0"
+                      (click)="proceedDepositReview()">
+                Review & Confirm Deposit {{ depositAmount && depositAmount > 0 ? '(' + formatINR(depositAmount) + ')' : '' }}
+                <i class="bi bi-arrow-right ms-1"></i>
+              </button>
+            </div>
+
+            <!-- STEP 2: REVIEW -->
+            <div *ngIf="depositStep === 'review'">
+              <div class="text-center mb-4">
+                <h4 class="fw-bold text-dark mb-1">Confirm Counter Deposit</h4>
+                <p class="text-muted small mb-0">Please verify customer deposit details before submitting</p>
+              </div>
+
+              <div class="receipt-box mb-4">
+                <div class="receipt-item">
+                  <span class="text-muted small">Customer Name</span>
+                  <span class="fw-bold text-dark">{{ depositCustomerName }}</span>
+                </div>
+                <div class="receipt-item">
+                  <span class="text-muted small">Target Account</span>
+                  <span class="fw-semibold text-dark">{{ depositTargetAcc }} ({{ depositCustomerType }})</span>
+                </div>
+                <div class="receipt-item">
+                  <span class="text-muted small">Deposit Amount</span>
+                  <span class="fs-4 fw-bold text-success">{{ formatINR(depositAmount) }}</span>
+                </div>
+                <div class="receipt-item">
+                  <span class="text-muted small">Remarks</span>
+                  <span class="text-dark">{{ depositDesc || 'Branch Counter Cash Deposit' }}</span>
+                </div>
+              </div>
+
+              <div *ngIf="depositError" class="alert alert-danger py-2 small mb-3">
+                {{ depositError }}
+              </div>
+
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary w-50 btn-premium py-2" (click)="depositStep = 'form'">
+                  <i class="bi bi-arrow-left me-1"></i> Edit
+                </button>
+                <button type="button" class="btn btn-success w-50 btn-premium py-2" [disabled]="isDepositing" (click)="confirmDeposit()">
+                  <span *ngIf="isDepositing" class="spinner-border spinner-border-sm me-2"></span>
+                  {{ isDepositing ? 'Processing...' : 'Execute Deposit ' + formatINR(depositAmount) }}
+                </button>
+              </div>
+            </div>
+
+            <!-- STEP 3: SUCCESS RECEIPT -->
+            <div *ngIf="depositStep === 'success'" class="text-center py-2">
+              <div class="d-inline-flex p-3 rounded-circle bg-success bg-opacity-10 text-success mb-3">
+                <i class="bi bi-check-circle-fill fs-1"></i>
+              </div>
+              <h4 class="fw-bold text-dark mb-1">Counter Deposit Complete!</h4>
+              <p class="text-success fw-semibold mb-4">{{ formatINR(depositReceipt.amount) }} credited to {{ depositReceipt.customerName }}</p>
+
+              <div class="receipt-box text-start mb-4">
+                <div class="receipt-item">
+                  <span class="text-muted small">Receipt / Reference ID</span>
+                  <span class="fw-bold font-monospace text-secondary small">{{ depositReceipt.reference }}</span>
+                </div>
+                <div class="receipt-item">
+                  <span class="text-muted small">Customer Account</span>
+                  <span class="text-dark small">{{ depositReceipt.targetAccount }} ({{ depositReceipt.customerName }})</span>
+                </div>
+                <div class="receipt-item">
+                  <span class="text-muted small">Date & Time</span>
+                  <span class="text-dark small">{{ depositReceipt.date | date:'medium' }}</span>
+                </div>
+                <div class="receipt-item">
+                  <span class="text-muted small">Updated Customer Balance</span>
+                  <span class="fs-5 fw-bold text-success">{{ formatINR(depositReceipt.newBalance) }}</span>
+                </div>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-success w-50 btn-premium py-2" (click)="resetDepositForm()">
+                  <i class="bi bi-plus-circle me-1"></i> New Deposit
+                </button>
+                <button type="button" class="btn btn-primary w-50 btn-premium py-2" (click)="switchTab('dashboard')">
+                  Return to Dashboard
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: INTER-ACCOUNT TRANSFER -->
+    <!-- ========================================== -->
+    <div *ngIf="activeTab === 'transfer'">
+      <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+          <div class="card card-premium shadow-sm border-0 p-4 p-md-5">
+
+            <!-- STEP 1: FORM -->
+            <div *ngIf="transferStep === 'form'">
+              <div class="text-center mb-4">
+                <div class="d-inline-flex p-3 rounded-circle bg-primary bg-opacity-10 text-primary mb-2">
+                  <i class="bi bi-arrow-left-right fs-1"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-1">Teller Assisted Wire Transfer</h4>
+                <p class="text-muted small mb-0">Execute wire transfer between any two customer bank accounts</p>
+              </div>
+
+              <!-- Source Account -->
+              <div class="mb-3">
+                <label for="transferFromAcc" class="form-label small fw-semibold text-secondary">Source Customer Account</label>
+                <input type="text" 
+                       class="form-control bg-light" 
+                       id="transferFromAcc" 
+                       [(ngModel)]="transferFromAcc" 
+                       (blur)="lookupTransferFrom()" 
+                       placeholder="10-digit source account number" 
+                       maxlength="10">
+                <div *ngIf="transferFromVerified" class="small text-success mt-1">
+                  <i class="bi bi-check-circle-fill me-1"></i> Verified: <strong>{{ transferFromName }}</strong> (Available: {{ formatINR(transferFromBalance) }})
+                </div>
+              </div>
+
+              <!-- Destination Account -->
+              <div class="mb-3">
+                <label for="transferToAcc" class="form-label small fw-semibold text-secondary">Destination Customer Account</label>
+                <input type="text" 
+                       class="form-control bg-light" 
+                       id="transferToAcc" 
+                       [(ngModel)]="transferToAcc" 
+                       (blur)="lookupTransferTo()" 
+                       placeholder="10-digit destination account number" 
+                       maxlength="10">
+                <div *ngIf="transferToVerified" class="small text-success mt-1">
+                  <i class="bi bi-check-circle-fill me-1"></i> Verified: <strong>{{ transferToName }}</strong>
+                </div>
+              </div>
+
+              <!-- Amount -->
+              <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <label for="transferAmount" class="form-label small fw-semibold text-secondary mb-0">Transfer Amount</label>
+                  <span class="small text-primary fw-medium" *ngIf="transferAmount && transferAmount > 0">
+                    {{ formatINR(transferAmount) }}
+                  </span>
+                </div>
+                <div class="input-group input-group-lg">
+                  <span class="input-group-text bg-light border-end-0 text-muted fw-bold fs-4">₹</span>
+                  <input type="number" 
+                         class="form-control bg-light border-start-0 amount-input-lg" 
+                         id="transferAmount" 
+                         [(ngModel)]="transferAmount" 
+                         placeholder="0.00" 
+                         min="1">
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div class="mb-4">
+                <label for="transferDesc" class="form-label small fw-semibold text-secondary">Transfer Remarks</label>
+                <input type="text" 
+                       class="form-control bg-light" 
+                       id="transferDesc" 
+                       [(ngModel)]="transferDesc" 
+                       placeholder="e.g. Branch teller assisted transfer" 
+                       maxlength="100">
+              </div>
+
+              <div *ngIf="transferError" class="alert alert-danger py-2 small mb-3">
+                {{ transferError }}
+              </div>
+
+              <button type="button" 
+                      class="btn btn-primary w-100 btn-premium py-2 fs-6" 
+                      [disabled]="!transferFromVerified || !transferToVerified || !transferAmount || transferAmount <= 0"
+                      (click)="proceedTransferReview()">
+                Review Transfer Details
+                <i class="bi bi-arrow-right ms-1"></i>
+              </button>
+            </div>
+
+            <!-- STEP 2: REVIEW -->
+            <div *ngIf="transferStep === 'review'">
+              <div class="text-center mb-4">
+                <h4 class="fw-bold text-dark mb-1">Review Inter-Account Transfer</h4>
+                <p class="text-muted small mb-0">Confirm wire details before moving funds</p>
+              </div>
+
+              <div class="receipt-box mb-4">
+                <div class="receipt-item">
+                  <span class="text-muted small">From Account</span>
+                  <span class="fw-semibold text-dark">{{ transferFromName }} ({{ transferFromAcc }})</span>
+                </div>
+                <div class="receipt-item">
+                  <span class="text-muted small">To Account</span>
+                  <span class="fw-semibold text-dark">{{ transferToName }} ({{ transferToAcc }})</span>
+                </div>
+                <div class="receipt-item">
+                  <span class="text-muted small">Transfer Amount</span>
+                  <span class="fs-4 fw-bold text-primary">{{ formatINR(transferAmount) }}</span>
+                </div>
+                <div class="receipt-item">
+                  <span class="text-muted small">Remarks</span>
+                  <span class="text-dark">{{ transferDesc || 'Branch Assisted Wire' }}</span>
+                </div>
+              </div>
+
+              <div *ngIf="transferError" class="alert alert-danger py-2 small mb-3">
+                {{ transferError }}
+              </div>
+
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary w-50 btn-premium py-2" (click)="transferStep = 'form'">
+                  <i class="bi bi-arrow-left me-1"></i> Edit
+                </button>
+                <button type="button" class="btn btn-primary w-50 btn-premium py-2" [disabled]="isTransferring" (click)="confirmTransfer()">
+                  <span *ngIf="isTransferring" class="spinner-border spinner-border-sm me-2"></span>
+                  {{ isTransferring ? 'Processing...' : 'Confirm Transfer ' + formatINR(transferAmount) }}
+                </button>
+              </div>
+            </div>
+
+            <!-- STEP 3: SUCCESS -->
+            <div *ngIf="transferStep === 'success'" class="text-center py-2">
+              <div class="d-inline-flex p-3 rounded-circle bg-success bg-opacity-10 text-success mb-3">
+                <i class="bi bi-check-circle-fill fs-1"></i>
+              </div>
+              <h4 class="fw-bold text-dark mb-1">Transfer Completed!</h4>
+              <p class="text-success fw-semibold mb-4">{{ formatINR(transferReceipt.amount) }} transferred successfully</p>
+
+              <div class="receipt-box text-start mb-4">
+                <div class="receipt-item">
+                  <span class="text-muted small">Reference ID</span>
+                  <span class="fw-bold font-monospace text-secondary small">{{ transferReceipt.reference }}</span>
+                </div>
+                <div class="receipt-item">
+                  <span class="text-muted small">Source Account</span>
+                  <span class="text-dark small">{{ transferReceipt.fromAccount }} ({{ transferReceipt.fromName }})</span>
+                </div>
+                <div class="receipt-item">
+                  <span class="text-muted small">Destination Account</span>
+                  <span class="text-dark small">{{ transferReceipt.toAccount }} ({{ transferReceipt.toName }})</span>
+                </div>
+                <div class="receipt-item">
+                  <span class="text-muted small">Date & Time</span>
+                  <span class="text-dark small">{{ transferReceipt.date | date:'medium' }}</span>
+                </div>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-primary w-50 btn-premium py-2" (click)="resetTransferForm()">
+                  <i class="bi bi-arrow-left-right me-1"></i> New Transfer
+                </button>
+                <button type="button" class="btn btn-primary w-50 btn-premium py-2" (click)="switchTab('dashboard')">
+                  Return to Dashboard
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: CLIENT ACCOUNTS DIRECTORY -->
+    <!-- ========================================== -->
+    <div class="card card-premium border-0 shadow-sm p-4" *ngIf="activeTab === 'accounts'">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+          <h5 class="fw-bold text-dark mb-1">Registered Customer Accounts</h5>
+          <p class="text-muted small mb-0">Complete roster of client accounts, types, and current ledger balances</p>
+        </div>
+        <div class="input-group" style="max-width: 320px;">
+          <span class="input-group-text bg-light text-muted"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control bg-light" [(ngModel)]="accountSearch" placeholder="Search account or user...">
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Account ID</th>
+              <th>User ID</th>
+              <th>Account Number</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th class="text-end">Balance</th>
+              <th class="text-end">Teller Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let acc of filteredAccounts">
+              <td class="font-monospace text-muted small">#{{ acc.id }}</td>
+              <td class="small">User #{{ acc.userId }}</td>
+              <td class="fw-bold text-dark font-monospace">{{ acc.accountNumber }}</td>
+              <td>
+                <span class="badge bg-light text-dark border px-2 py-1 rounded-pill">{{ acc.accountType }}</span>
+              </td>
+              <td>
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 rounded-pill small">
+                  ● Active
+                </span>
+              </td>
+              <td class="text-end fw-bold text-success">{{ formatINR(acc.balance) }}</td>
+              <td class="text-end">
+                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3" (click)="quickDepositForAccount(acc.accountNumber)">
+                  <i class="bi bi-cash me-1"></i> Add Deposit
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="filteredAccounts.length === 0">
+              <td colspan="7" class="text-center py-4 text-muted">No accounts match the search criteria.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 5: AUDIT LEDGER -->
+    <!-- ========================================== -->
+    <div class="card card-premium border-0 shadow-sm p-4" *ngIf="activeTab === 'transactions'">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+          <h5 class="fw-bold text-dark mb-1">Global Transaction Audit Logs</h5>
+          <p class="text-muted small mb-0">Official audit ledger of all bank debits, credits, and wire movements</p>
+        </div>
+        <div class="input-group" style="max-width: 320px;">
+          <span class="input-group-text bg-light text-muted"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control bg-light" [(ngModel)]="transactionSearch" placeholder="Search reference, note, type...">
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Account</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th>Reference</th>
+              <th>Timestamp</th>
+              <th class="text-end">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let txn of filteredTransactions">
+              <td class="font-monospace small text-muted">#{{ txn.id }}</td>
+              <td class="small">A/C #{{ txn.accountId }}</td>
+              <td>
+                <span class="badge px-3 py-1 rounded-pill text-uppercase"
+                      [ngClass]="{
+                        'bg-success-subtle text-success': txn.transactionType === 'DEPOSIT' || txn.transactionType === 'TRANSFER_IN',
+                        'bg-danger-subtle text-danger': txn.transactionType === 'WITHDRAW' || txn.transactionType === 'TRANSFER_OUT'
+                      }">
+                  {{ txn.transactionType }}
+                </span>
+              </td>
+              <td class="fw-medium text-dark">{{ txn.description }}</td>
+              <td class="text-secondary small font-monospace">{{ txn.reference }}</td>
+              <td class="text-secondary small">{{ txn.createdAt | date:'medium' }}</td>
+              <td class="text-end fw-bold"
+                  [ngClass]="{
+                    'text-success': txn.transactionType === 'DEPOSIT' || txn.transactionType === 'TRANSFER_IN',
+                    'text-danger': txn.transactionType === 'WITHDRAW' || txn.transactionType === 'TRANSFER_OUT'
+                  }">
+                {{ txn.transactionType === 'DEPOSIT' || txn.transactionType === 'TRANSFER_IN' ? '+' : '-' }}{{ formatINR(txn.amount) }}
+              </td>
+            </tr>
+            <tr *ngIf="filteredTransactions.length === 0">
+              <td colspan="7" class="text-center py-4 text-muted">No transactions match the search filter.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

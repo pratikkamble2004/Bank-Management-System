@@ -1,0 +1,60 @@
+# ========================================================
+# Git Ignore for Bank Management System (Java + Angular)
+# ========================================================
+
+# Environment & Sensitive Credentials
+.env
+.env.local
+.env.*.local
+*.env
+cookies.txt
+
+# Maven & Java Build Artifacts
+target/
+*.class
+*.war
+*.jar
+*.ear
+
+# Embedded Tomcat & Server Work Dirs
+tomcat.*/
+tomcat.8080/
+work/
+temp/
+logs/
+*.log
+
+# Eclipse IDE Configuration
+.settings/
+.project
+.classpath
+.metadata/
+bin/
+
+# Visual Studio Code & JetBrains IDEs
+.vscode/
+frontend/.vscode/
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Frontend (Node & Angular)
+frontend/node_modules/
+node_modules/
+frontend/dist/
+dist/
+frontend/.angular/
+.angular/
+.npm/
+package-lock.json.log
+
+# Operating System Specific
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Temporary files
+*.tmp
+*.bak
+*.swp

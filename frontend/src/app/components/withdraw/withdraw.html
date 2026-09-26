@@ -1,0 +1,330 @@
+<div class="container py-4 py-md-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+      
+      <!-- Back Link -->
+      <a class="btn btn-link text-decoration-none text-muted fw-semibold mb-3 ps-0 d-inline-flex align-items-center" routerLink="/dashboard">
+        <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+      </a>
+
+      <!-- Available Balance Banner -->
+      <div class="balance-banner mb-4 d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-uppercase small tracking-wider text-light opacity-75 mb-1">
+            <i class="bi bi-shield-check me-1 text-info"></i> {{ accountType }} Account {{ maskAccount(accountNumber) }}
+          </div>
+          <div class="fs-6 text-light opacity-75">Available Balance</div>
+          <div class="fs-3 fw-bold text-white">
+            <span *ngIf="!loadingAccount">{{ formatINR(currentBalance) }}</span>
+            <span *ngIf="loadingAccount" class="spinner-border spinner-border-sm text-light"></span>
+          </div>
+        </div>
+        <div class="text-end">
+          <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill small">
+            <i class="bi bi-circle-fill me-1 small"></i> UPI Active
+          </span>
+        </div>
+      </div>
+
+      <!-- Main Card -->
+      <div class="card card-premium shadow-sm border-0 p-4 p-md-5">
+
+        <!-- Stepper Indicator -->
+        <div class="tx-stepper">
+          <div class="step-item" [ngClass]="{'active': step === 'form', 'completed': step === 'review' || step === 'success'}">
+            <div class="step-circle"><i class="bi" [ngClass]="{'bi-check': step === 'review' || step === 'success', 'bi-1-circle-fill': step === 'form'}"></i></div>
+            <span>Scan & Amount</span>
+          </div>
+          <div class="step-divider"></div>
+          <div class="step-item" [ngClass]="{'active': step === 'review', 'completed': step === 'success'}">
+            <div class="step-circle"><i class="bi" [ngClass]="{'bi-check': step === 'success', 'bi-2-circle-fill': step === 'review'}"></i></div>
+            <span>Review</span>
+          </div>
+          <div class="step-divider"></div>
+          <div class="step-item" [ngClass]="{'active': step === 'success' || step === 'failure'}">
+            <div class="step-circle"><i class="bi bi-3-circle-fill"></i></div>
+            <span>Dispense Cash</span>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- STEP 1: FORM WITH UPI SCANNER -->
+        <!-- ========================================== -->
+        <div *ngIf="step === 'form'">
+          <div class="text-center mb-4">
+            <div class="d-inline-flex p-3 rounded-circle bg-danger bg-opacity-10 text-danger mb-2">
+              <i class="bi bi-qr-code-scan fs-2"></i>
+            </div>
+            <h4 class="fw-bold text-dark mb-1">Cashless ATM Withdrawal</h4>
+            <p class="text-muted small mb-0">Scan the QR code displayed on any Apex ATM screen to withdraw cash without a physical card</p>
+          </div>
+
+          <!-- Mode Selector Tabs -->
+          <div class="d-flex rounded-3 bg-light p-1 border mb-4">
+            <button type="button" 
+                    class="btn btn-sm w-50 rounded-2 fw-semibold"
+                    [ngClass]="withdrawMode === 'scanner' ? 'btn-white bg-white shadow-sm text-dark' : 'text-muted'"
+                    (click)="withdrawMode = 'scanner'">
+              <i class="bi bi-camera me-1"></i> Scan ATM QR
+            </button>
+            <button type="button" 
+                    class="btn btn-sm w-50 rounded-2 fw-semibold"
+                    [ngClass]="withdrawMode === 'manual' ? 'btn-white bg-white shadow-sm text-dark' : 'text-muted'"
+                    (click)="withdrawMode = 'manual'">
+              <i class="bi bi-keyboard me-1"></i> Enter ATM UPI ID
+            </button>
+          </div>
+
+          <!-- Scanner Viewfinder Box -->
+          <div *ngIf="withdrawMode === 'scanner'" class="mb-4">
+            <div *ngIf="isScanning" class="p-4 rounded-4 text-center border border-2 border-dashed bg-light">
+              <div class="d-inline-flex p-3 rounded-circle bg-white shadow-sm text-danger mb-2">
+                <i class="bi bi-upc-scan fs-1"></i>
+              </div>
+              <div class="fw-semibold text-dark small mb-1">ATM QR Scanner Ready</div>
+              <p class="text-muted small mb-3">Align the QR code on the ATM screen within the viewfinder</p>
+              <button type="button" class="btn btn-sm btn-outline-danger px-4 rounded-pill fw-semibold" (click)="simulateQrScan()">
+                <i class="bi bi-qr-code me-1"></i> Simulate Scan ATM QR Code
+              </button>
+            </div>
+
+            <!-- Scanned Confirmation Badge -->
+            <div *ngIf="!isScanning" class="p-3 rounded-3 bg-success bg-opacity-10 border border-success border-opacity-25 d-flex justify-content-between align-items-center">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-patch-check-fill text-success fs-4 me-2"></i>
+                <div>
+                  <div class="small fw-bold text-success">ATM Terminal Connected</div>
+                  <div class="small text-muted font-monospace">{{ upiTerminalId }}</div>
+                </div>
+              </div>
+              <button type="button" class="btn btn-sm btn-link text-muted text-decoration-none" (click)="resetScanner()">
+                <i class="bi bi-arrow-repeat"></i> Rescan
+              </button>
+            </div>
+          </div>
+
+          <!-- Manual Terminal ID Input -->
+          <div *ngIf="withdrawMode === 'manual'" class="mb-4">
+            <label for="upiTerminalId" class="form-label small fw-semibold text-secondary">ATM Kiosk / Merchant UPI ID</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light text-muted">@</span>
+              <input type="text" 
+                     class="form-control bg-light" 
+                     id="upiTerminalId" 
+                     name="upiTerminalId" 
+                     [(ngModel)]="upiTerminalId" 
+                     placeholder="e.g. atm-mum-4001@apexbank">
+            </div>
+          </div>
+
+          <form (ngSubmit)="goToReview()">
+            <!-- Amount Input -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="amount" class="form-label small fw-semibold text-secondary mb-0">Withdrawal Amount</label>
+                <span class="small text-danger fw-medium" *ngIf="amount && amount > 0">
+                  {{ formatINR(amount) }}
+                </span>
+              </div>
+              <div class="input-group input-group-lg">
+                <span class="input-group-text bg-light border-end-0 text-muted fw-bold fs-4">₹</span>
+                <input type="number" 
+                       class="form-control bg-light border-start-0 amount-input-lg" 
+                       id="amount" 
+                       name="amount" 
+                       [(ngModel)]="amount" 
+                       (ngModelChange)="validateAmount()"
+                       placeholder="0.00" 
+                       min="1" 
+                       step="any" 
+                       required>
+              </div>
+              <!-- Validation error message -->
+              <div *ngIf="amountError" class="text-danger small mt-1 d-flex align-items-center">
+                <i class="bi bi-exclamation-circle-fill me-1"></i> {{ amountError }}
+              </div>
+            </div>
+
+            <!-- Quick Amount Chips -->
+            <div class="mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small fw-medium text-muted mb-0">Quick Select Amount</label>
+                <span class="small text-muted" *ngIf="currentBalance <= 0">No balance available</span>
+              </div>
+              <div class="quick-amount-grid">
+                <button type="button" 
+                        class="quick-amount-chip" 
+                        *ngFor="let q of quickAmounts"
+                        [class.selected]="amount === q"
+                        [disabled]="q > currentBalance"
+                        [title]="q > currentBalance ? 'Exceeds available balance' : ''"
+                        (click)="selectQuickAmount(q)">
+                  - {{ formatINR(q) }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Transaction Note -->
+            <div class="mb-4">
+              <label for="description" class="form-label small fw-semibold text-secondary">Transaction note (Optional)</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted"><i class="bi bi-pencil-square"></i></span>
+                <input type="text" 
+                       class="form-control bg-light" 
+                       id="description" 
+                       name="description" 
+                       [(ngModel)]="description" 
+                       placeholder="e.g. Cashless ATM cash withdrawal"
+                       maxlength="100">
+              </div>
+            </div>
+
+            <!-- Proceed to Review Button -->
+            <button type="submit" 
+                    class="btn btn-danger w-100 btn-premium py-2 fs-6" 
+                    [disabled]="!amount || amount <= 0 || !!amountError || amount > currentBalance">
+              Continue to Review {{ amount && amount > 0 ? '(' + formatINR(amount) + ')' : '' }}
+              <i class="bi bi-arrow-right ms-1"></i>
+            </button>
+          </form>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- STEP 2: REVIEW & CONFIRM -->
+        <!-- ========================================== -->
+        <div *ngIf="step === 'review'">
+          <div class="text-center mb-4">
+            <h4 class="fw-bold text-dark mb-1">Review Cashless Withdrawal</h4>
+            <p class="text-muted small mb-0">Verify ATM details before confirming cash dispense</p>
+          </div>
+
+          <div class="receipt-box mb-4">
+            <div class="receipt-item">
+              <span class="text-muted small">ATM / Merchant Terminal</span>
+              <span class="fw-semibold text-dark font-monospace">{{ upiTerminalId || 'Apex ATM Terminal #4001' }}</span>
+            </div>
+            <div class="receipt-item">
+              <span class="text-muted small">Debited Account</span>
+              <span class="fw-semibold text-dark">{{ accountType }} Account {{ maskAccount(accountNumber) }}</span>
+            </div>
+            <div class="receipt-item">
+              <span class="text-muted small">Withdrawal Amount</span>
+              <span class="fs-4 fw-bold text-danger">{{ formatINR(amount) }}</span>
+            </div>
+            <div class="receipt-item">
+              <span class="text-muted small">Current Balance</span>
+              <span class="text-muted">{{ formatINR(currentBalance) }}</span>
+            </div>
+            <div class="receipt-item">
+              <span class="text-muted small">Balance After Withdrawal</span>
+              <span class="fw-bold text-primary">{{ formatINR(calculatedNewBalance) }}</span>
+            </div>
+          </div>
+
+          <!-- Trust Callout -->
+          <div class="d-flex align-items-center bg-light p-2 px-3 rounded-3 mb-4 border text-muted small">
+            <i class="bi bi-shield-lock-fill text-danger fs-5 me-2"></i>
+            <span>Encrypted with 256-bit bank-grade digital security protocols.</span>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="d-flex gap-2">
+            <button type="button" 
+                    class="btn btn-outline-secondary w-50 btn-premium py-2" 
+                    [disabled]="isSubmitting"
+                    (click)="editDetails()">
+              <i class="bi bi-arrow-left me-1"></i> Edit
+            </button>
+            <button type="button" 
+                    class="btn btn-danger w-50 btn-premium py-2" 
+                    [disabled]="isSubmitting"
+                    (click)="confirmWithdraw()">
+              <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              {{ isSubmitting ? 'Dispensing...' : 'Withdraw ' + formatINR(amount) }}
+            </button>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- STEP 3: SUCCESS STATE -->
+        <!-- ========================================== -->
+        <div *ngIf="step === 'success'" class="text-center py-2">
+          <div class="d-inline-flex p-3 rounded-circle bg-success bg-opacity-10 text-success mb-3">
+            <i class="bi bi-check-circle-fill fs-1"></i>
+          </div>
+          <h4 class="fw-bold text-dark mb-1">Cash Dispense Authorized!</h4>
+          <p class="text-success fw-semibold mb-3">{{ formatINR(amount) }} has been debited from your account</p>
+
+          <!-- ATM Pickup OTP Badge -->
+          <div class="p-3 bg-light rounded-3 border mb-4 text-center">
+            <div class="small text-muted text-uppercase tracking-wider fw-semibold">ATM Cash Dispense OTP</div>
+            <div class="fs-2 fw-bold text-danger font-monospace letter-spacing-2 mt-1">
+              {{ pickupCode }}
+            </div>
+            <div class="small text-muted mt-1">
+              <i class="bi bi-clock me-1"></i> Enter this 6-digit OTP on the ATM screen to collect your cash.
+            </div>
+          </div>
+
+          <div class="receipt-box text-start mb-4">
+            <div class="receipt-item" *ngIf="txReference">
+              <span class="text-muted small">Transaction ID</span>
+              <span class="fw-bold font-monospace text-secondary small">{{ txReference }}</span>
+            </div>
+            <div class="receipt-item">
+              <span class="text-muted small">ATM Terminal</span>
+              <span class="text-dark small font-monospace">{{ upiTerminalId || 'Apex ATM Terminal #4001' }}</span>
+            </div>
+            <div class="receipt-item">
+              <span class="text-muted small">Date & Time</span>
+              <span class="text-dark small">{{ txTimestamp | date:'medium' }}</span>
+            </div>
+            <div class="receipt-item">
+              <span class="text-muted small">Account</span>
+              <span class="text-dark small">{{ accountType }} Account {{ maskAccount(accountNumber) }}</span>
+            </div>
+            <div class="receipt-item">
+              <span class="text-muted small">New Available Balance</span>
+              <span class="fs-5 fw-bold text-success">{{ formatINR(updatedBalance) }}</span>
+            </div>
+          </div>
+
+          <div class="d-grid gap-2">
+            <a class="btn btn-primary btn-premium py-2" routerLink="/transactions">
+              <i class="bi bi-list-stars me-1"></i> View in Transactions
+            </a>
+            <div class="d-flex gap-2">
+              <a class="btn btn-outline-secondary w-50 btn-premium py-2" routerLink="/dashboard">
+                <i class="bi bi-speedometer2 me-1"></i> Dashboard
+              </a>
+              <button type="button" class="btn btn-outline-danger w-50 btn-premium py-2" (click)="resetForm()">
+                <i class="bi bi-qr-code-scan me-1"></i> Withdraw Again
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- STEP 4: FAILURE STATE -->
+        <!-- ========================================== -->
+        <div *ngIf="step === 'failure'" class="text-center py-2">
+          <div class="d-inline-flex p-3 rounded-circle bg-danger bg-opacity-10 text-danger mb-3">
+            <i class="bi bi-x-circle-fill fs-1"></i>
+          </div>
+          <h4 class="fw-bold text-dark mb-1">Withdrawal Failed</h4>
+          <p class="text-danger small mb-4">{{ failureReason || "We couldn't complete your withdrawal. Please try again." }}</p>
+
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-primary w-50 btn-premium py-2" (click)="editDetails()">
+              <i class="bi bi-arrow-repeat me-1"></i> Try Again
+            </button>
+            <a class="btn btn-outline-secondary w-50 btn-premium py-2" routerLink="/dashboard">
+              Back to Dashboard
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
