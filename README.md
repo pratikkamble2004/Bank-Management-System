@@ -14,6 +14,7 @@ Designed using a **3-Tier Layered Architecture**, the system features both a sel
 
 ---
 
+
 ## 📑 Table of Contents
 
 - [Core Features](#-core-features)
