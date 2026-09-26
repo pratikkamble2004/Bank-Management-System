@@ -274,47 +274,6 @@ Base Context URL: `http://localhost:8080/bank-management`
 
 ---
 
-## 🛡 Security & Concurrency Highlights
-
-1. **ACID Transaction Guarantees**:
-   In `AccountService.java`, multi-step financial operations use explicit manual transaction boundaries:
-   ```java
-   connection.setAutoCommit(false);
-   // ... execute balance updates and audit logs ...
-   connection.commit();
-   // in catch block -> connection.rollback();
-   ```
-2. **Pessimistic Row-Level Locking**:
-   To prevent race conditions and double-spending when concurrent requests target the same account, read queries during transfers execute with `SELECT ... FOR UPDATE`.
-3. **Session Authentication**:
-   State is maintained via Tomcat `HttpSession` with standard `JSESSIONID` cookies. Client requests pass `{ withCredentials: true }` so cookies are safely forwarded.
-4. **CORS Defense**:
-   A dedicated `CorsFilter` intercepts every request, validates allowed origins, configures headers, and responds to preflight `OPTIONS` requests with status `200 OK`.
-
----
-
-## 🤝 GitHub & Contribution
-
-When preparing this project for GitHub:
-
-1. **Verify `.gitignore`**:
-   The root `.gitignore` automatically excludes:
-   - Credentials (`.env`, `*.env`)
-   - Build outputs (`target/`, `dist/`, `*.war`)
-   - Dependencies (`node_modules/`)
-   - IDE configs (`.vscode/`, `.settings/`, `.project`, `.classpath`)
-   - Server work logs (`tomcat.*/`, `work/`, `logs/`)
-2. **Push to Remote**:
-   ```bash
-   git init
-   git add .
-   git commit -m "feat: initial commit of Bank Management System"
-   git branch -M main
-   git remote add origin https://github.com/your-username/bank-management.git
-   git push -u origin main
-   ```
-
----
 
 ## 📄 License
 
