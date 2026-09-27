@@ -38,19 +38,19 @@ CREATE TABLE transactions (
         ON DELETE CASCADE
 );
 
--- Demo users
+-- Demo users (passwords are BCrypt-hashed: '12345' for pratik & demo, 'admin123' for admin)
 INSERT INTO users(id, username, password, role)
-VALUES (1, 'pratik', '12345', 'CUSTOMER');
+VALUES (1, 'pratik', '$2a$10$CY/OzCU25QOFQPjAWs4PfelNSUNcqPvkONC9T3U00UxK.gRgpaXUK', 'CUSTOMER');
 
 INSERT INTO accounts(user_id, account_number, account_type, balance)
 VALUES (1, '1000000001', 'SAVINGS', 10000.00);
 
 INSERT INTO users(id, username, password, role)
-VALUES (2, 'demo', '12345', 'CUSTOMER');
+VALUES (2, 'demo', '$2a$10$CY/OzCU25QOFQPjAWs4PfelNSUNcqPvkONC9T3U00UxK.gRgpaXUK', 'CUSTOMER');
 
 INSERT INTO accounts(user_id, account_number, account_type, balance)
 VALUES (2, '1000000002', 'SAVINGS', 5000.00);
 
 -- Admin user
 INSERT INTO users(id, username, password, role)
-VALUES (3, 'admin', 'admin123', 'ADMIN');
+VALUES (3, 'admin', '$2a$10$Dtc1YSxX4q6PhK8Ln.LROeGjGWu2toNQP.QeyNdXc21FqwtafVFZS', 'ADMIN');

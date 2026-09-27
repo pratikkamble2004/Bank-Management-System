@@ -95,6 +95,7 @@ The application strictly follows the **3-Tier Layered Architecture**:
 - **Data Persistence**: Pure Native Java JDBC API (`java.sql.*`)
 - **Database Driver**: MySQL Connector/J 9.3.0 (`com.mysql:mysql-connector-j`)
 - **JSON Processing**: Google Gson 2.11.0 (`com.google.code.gson:gson`)
+- **Security & Password Hashing**: jBCrypt 0.4 (`org.mindrot:jbcrypt`)
 - **Build System**: Apache Maven 3.9
 
 ### Frontend
@@ -240,13 +241,15 @@ Access the application at `http://localhost:4200`.
 
 ## 🔑 Demo Login Credentials
 
-The database script initializes the following test accounts:
+The database script initializes the following test accounts (passwords are stored as BCrypt hashes in `database.sql`):
 
-| Role | Username | Default Password | Account Number | Purpose |
+| Role | Username | Plain-Text Password | Account Number | Purpose |
 | :--- | :--- | :--- | :--- | :--- |
 | **Bank Admin / Teller** | `admin` | `admin123` | — | Accesses Bank Employee Portal, Global Audit Ledger, Counter Operations |
 | **Customer** | `pratik` | `12345` | `1000000001` | Primary customer account (initial balance: ₹10,000.00) |
 | **Customer** | `demo` | `12345` | `1000000002` | Secondary transfer destination account (initial balance: ₹5,000.00) |
+
+> ℹ️ **Demo Passwords Note**: Passwords in `database.sql` are securely stored as BCrypt hashes. To log in through the application or test the endpoints, use the plain-text passwords listed above.
 
 ---
 

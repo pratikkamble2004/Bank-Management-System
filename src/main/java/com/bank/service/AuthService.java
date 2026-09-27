@@ -3,6 +3,7 @@ package com.bank.service;
 import com.bank.dao.AccountDAO;
 import com.bank.dao.UserDAO;
 import com.bank.model.User;
+import org.mindrot.jbcrypt.BCrypt;
 import java.sql.SQLException;
 
 public class AuthService {
@@ -12,8 +13,14 @@ public class AuthService {
 
     public User login(String username, String password) {
         User user = userDAO.findByUsername(username);
-        if (user != null && user.getPassword().equals(password)) {
-            return user;
+        if (user != null && user.getPassword() != null) {
+            try {
+                if (BCrypt.checkpw(password, user.getPassword())) {
+                    return user;
+                }
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
         }
         return null;
     }
@@ -23,8 +30,10 @@ public class AuthService {
             throw new IllegalArgumentException("Username already exists");
         }
 
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+
         // Use direct transaction or simple JDBC calls
-        int userId = userDAO.createUser(username, password, "CUSTOMER");
+        int userId = userDAO.createUser(username, hashedPassword, "CUSTOMER");
         
         // Generate a random 10-digit account number
         String accountNumber = String.valueOf(1000000000L + userId);
