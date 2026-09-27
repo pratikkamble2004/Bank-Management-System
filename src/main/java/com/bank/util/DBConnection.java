@@ -18,21 +18,22 @@ public final class DBConnection {
         try (InputStream input = DBConnection.class.getClassLoader()
                 .getResourceAsStream("db.properties")) {
             if (input == null) {
-                url = "jdbc:mysql://localhost:3306/bank_management?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
-                user = "root";
-                password = "12345";
-            } else {
-                props.load(input);
-                url = props.getProperty("db.url");
-                user = props.getProperty("db.username");
-                password = props.getProperty("db.password");
+                throw new IllegalStateException("Database configuration file 'db.properties' not found in classpath");
             }
+            props.load(input);
+            url = props.getProperty("db.url");
+            user = props.getProperty("db.username");
+            password = props.getProperty("db.password");
+
+            if (url == null || user == null) {
+                throw new IllegalStateException("Database configuration 'db.url' or 'db.username' is missing in db.properties");
+            }
+
             Class.forName("com.mysql.cj.jdbc.Driver");
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            url = "jdbc:mysql://localhost:3306/bank_management?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
-            user = "root";
-            password = "12345";
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to load database configuration from 'db.properties'", e);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("MySQL JDBC driver 'com.mysql.cj.jdbc.Driver' not found", e);
         }
     }
 

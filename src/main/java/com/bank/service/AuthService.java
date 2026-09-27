@@ -14,12 +14,28 @@ public class AuthService {
     public User login(String username, String password) {
         User user = userDAO.findByUsername(username);
         if (user != null && user.getPassword() != null) {
-            try {
-                if (BCrypt.checkpw(password, user.getPassword())) {
+            String storedPassword = user.getPassword();
+
+            // 1. Verify against BCrypt hash
+            if (storedPassword.startsWith("$2a$") || storedPassword.startsWith("$2b$") || storedPassword.startsWith("$2y$")) {
+                try {
+                    if (BCrypt.checkpw(password, storedPassword)) {
+                        return user;
+                    }
+                } catch (IllegalArgumentException ignored) {
+                }
+            } else {
+                // 2. Legacy plain-text fallback (for existing database accounts)
+                if (storedPassword.equals(password)) {
+                    // Transparently upgrade legacy plain-text password to BCrypt hash in DB
+                    try {
+                        String newHashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+                        userDAO.updatePassword(user.getId(), newHashedPassword);
+                        user.setPassword(newHashedPassword);
+                    } catch (Exception ignored) {
+                    }
                     return user;
                 }
-            } catch (IllegalArgumentException e) {
-                return null;
             }
         }
         return null;
